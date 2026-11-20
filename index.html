@@ -56,6 +56,12 @@
   #list li{display:flex;justify-content:space-between;gap:10px;padding:6px 2px;border-bottom:1px solid var(--line);font-size:13px}
   #list li span.v{font-weight:700;font-variant-numeric:tabular-nums}
   #list li span.s{color:var(--muted);font-variant-numeric:tabular-nums}
+  #list li .del{background:none;border:none;color:var(--muted);font-size:15px;line-height:1;padding:0 2px 0 8px;cursor:pointer}
+  #list li .del:hover{color:var(--bad);background:none}
+  .confirm{margin-top:12px;padding:12px;border:1px solid var(--bad);border-radius:10px;background:rgba(226,83,63,.1);font-size:14px}
+  .confirm .btns{margin-top:10px}
+  button.dangerFill{background:var(--bad);border-color:var(--bad);color:#fff}
+  button.dangerFill:hover{background:#f06a57}
   footer{color:var(--muted);font-size:12px;margin-top:16px;text-align:center}
 </style>
 </head>
@@ -110,10 +116,14 @@
       <svg id="strip" viewBox="0 0 320 78"></svg>
       <div id="stats">No settings yet. Pass the knob around.</div>
       <ol id="list"></ol>
+      <div id="confirmReset" class="confirm" hidden>
+        <span id="confirmText">Erase all settings and start over?</span>
+        <div class="btns"><button id="doReset" class="dangerFill">Erase everything</button><button id="cancelReset" class="ghost">Cancel</button></div>
+      </div>
       <div class="btns">
         <button id="consensus">Fly the consensus</button>
         <button id="copy" class="ghost">Copy CSV</button>
-        <button id="clear" class="ghost">Clear</button>
+        <button id="clear" class="ghost danger">Reset all</button>
       </div>
     </div>
   </section>
@@ -856,15 +866,31 @@ document.getElementById('copy').addEventListener('click', async () => {
   const csv = ['trial,member,setting,start,time', ...reports.map(r => `${r.trial},"${r.who.replace(/"/g, '""')}",${r.setting},${r.start},${r.time}`)].join('\n');
   try { await navigator.clipboard.writeText(csv); toast.textContent = 'CSV copied.'; } catch (e) { toast.textContent = "Couldn't copy here."; }
 });
-const clearBtn = document.getElementById('clear'); let clearArm = null;
-clearBtn.addEventListener('click', () => {
-  if (!clearArm) {
-    clearBtn.textContent = 'Click again to clear'; clearBtn.classList.add('danger');
-    clearArm = setTimeout(() => { clearArm = null; clearBtn.textContent = 'Clear'; clearBtn.classList.remove('danger'); }, 2500);
-    return;
-  }
-  clearTimeout(clearArm); clearArm = null; clearBtn.textContent = 'Clear'; clearBtn.classList.remove('danger');
-  reports = []; save(); trial = 1; render(); newTrial(false); toast.textContent = 'Cleared.';
+const confirmBox = document.getElementById('confirmReset');
+document.getElementById('clear').addEventListener('click', () => {
+  if (!reports.length && trial === 1 && !document.getElementById('who').value) { resetAll(); return; }
+  document.getElementById('confirmText').textContent =
+    `Erase all ${reports.length} setting${reports.length === 1 ? '' : 's'} and start over at trial 1?`;
+  confirmBox.hidden = false;
+  document.getElementById('cancelReset').focus();
+});
+document.getElementById('cancelReset').addEventListener('click', () => { confirmBox.hidden = true; });
+document.getElementById('doReset').addEventListener('click', resetAll);
+function resetAll() {
+  confirmBox.hidden = true;
+  reports = []; save();
+  trial = 1;
+  document.getElementById('who').value = '';
+  blind.checked = false;
+  smoke = []; confetti = []; s = 0;
+  render(); newTrial(false);
+  toast.textContent = 'Everything cleared. Fresh start.';
+}
+document.getElementById('list').addEventListener('click', e => {
+  const b = e.target.closest('.del'); if (!b) return;
+  const i = +b.dataset.i, r = reports[i]; if (!r) return;
+  reports.splice(i, 1); save(); render();
+  toast.textContent = `Removed ${r.who}'s setting (${r.setting > 0 ? '+' : ''}${r.setting}).`;
 });
 
 function render() {
@@ -889,8 +915,8 @@ function render() {
       `<br><span style="color:var(--muted)">Committee consensus: </span><b>${bandOf(m / 100).cap}</b>`;
   } else stats.textContent = 'No settings yet. Pass the knob around.';
   strip.innerHTML = svg;
-  list.innerHTML = reports.slice().reverse().map(r =>
-    `<li><span>#${r.trial} · ${r.who.replace(/[<>&]/g, '')}</span><span><span class="v">${r.setting > 0 ? '+' : ''}${r.setting}</span> <span class="s">(start ${r.start > 0 ? '+' : ''}${r.start})</span></span></li>`).join('');
+  list.innerHTML = reports.map((r, i) => [r, i]).reverse().map(([r, i]) =>
+    `<li><span>#${r.trial} · ${r.who.replace(/[<>&]/g, '')}</span><span><span class="v">${r.setting > 0 ? '+' : ''}${r.setting}</span> <span class="s">(start ${r.start > 0 ? '+' : ''}${r.start})</span><button class="del" data-i="${i}" title="Remove this setting" aria-label="Remove ${r.who.replace(/[<>&"]/g, '')}'s setting">×</button></span></li>`).join('');
 }
 render();
 newTrial(false);

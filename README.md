@@ -12,6 +12,7 @@
 - Settings are logged with their start points and shown as a dot plot with mean ± SEM.
 - **Fly the consensus** sets the plane to the committee mean.
 - **Copy CSV** exports the log.
+- **Reset all** (with an in-page confirmation) erases every setting, the trial counter and the name field. The × on a row removes just that setting.
 
 Settings are stored in the browser's localStorage, so it works best on one shared screen with the knob passed around.
 
