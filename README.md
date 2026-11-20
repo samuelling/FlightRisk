@@ -4,7 +4,6 @@
 
 - Turn it down: the plane sheds its wing, tail, propeller and banner, catches fire, and dives toward the Dean's office while the committee parachutes out. The Chair goes down with the plane.
 - Turn it up: the fuselage gets skinned, the tail and wing bolt on, CVs fly *in*, and the banner reads OFFER ACCEPTED! under sunshine and confetti.
-- Either way, five jetpacking administrators (HR, Provost, Budget, Compliance, IT) hover at a safe distance and complicate things: forms lobbed at the committee, PENDING/DENIED stamps on the fuselage, literal red tape that multiplies as the search improves, a Budget sign, and photos for the IT ticket. Administrators on scene: 5. Helping: 0.
 
 ## Method of adjustment
 
